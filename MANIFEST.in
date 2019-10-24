@@ -1,0 +1,2 @@
+include src/cycolorsys/*.pxd
+include src/cycolorsys/*.c
