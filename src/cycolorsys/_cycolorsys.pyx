@@ -46,21 +46,26 @@ cdef double TWO_THIRD = 2.0/3.0
 # There are a great many versions of the constants used in these formulae.
 # The ones in this library uses constants from the FCC version of NTSC.
 
-cdef void _rgb_to_yiq(color_rgb *rgb, color_yiq *yiq) nogil except *:
+cdef void _rgb_to_yiq(color_rgb_t *rgb_ptr, color_yiq_t *yiq_ptr) nogil except *:
+    cdef _color_rgb_st* rgb = &rgb_ptr.values
+    cdef _color_yiq_st* yiq = &yiq_ptr.values
     yiq.y = 0.30*rgb.r + 0.59*rgb.g + 0.11*rgb.b
     yiq.i = 0.74*(rgb.r-yiq.y) - 0.27*(rgb.b-yiq.y)
     yiq.q = 0.48*(rgb.r-yiq.y) + 0.41*(rgb.b-yiq.y)
 
-cpdef (double, double, double) rgb_to_yiq(double r, double g, double b):
-    cdef color_yiq yiq
-    cdef color_rgb rgb
-    rgb.r = r
-    rgb.g = g
-    rgb.b = b
+cpdef rgb_to_yiq(double r, double g, double b):
+    cdef color_yiq_t yiq
+    yiq.array = [0, 0, 0]
+    cdef color_rgb_t rgb
+    rgb.values.r = r
+    rgb.values.g = g
+    rgb.values.b = b
     _rgb_to_yiq(&rgb, &yiq)
-    return (yiq.y, yiq.i, yiq.q)
+    return yiq.array
 
-cdef void _yiq_to_rgb(color_yiq *yiq, color_rgb *rgb) nogil except *:
+cdef void _yiq_to_rgb(color_yiq_t *yiq_ptr, color_rgb_t *rgb_ptr) nogil except *:
+    cdef _color_yiq_st* yiq = &yiq_ptr.values
+    cdef _color_rgb_st* rgb = &rgb_ptr.values
     # r = y + (0.27*q + 0.41*i) / (0.74*0.41 + 0.27*0.48)
     # b = y + (0.74*q - 0.48*i) / (0.74*0.41 + 0.27*0.48)
     # g = y - (0.30*(r-y) + 0.11*(b-y)) / 0.59
@@ -82,21 +87,24 @@ cdef void _yiq_to_rgb(color_yiq *yiq, color_rgb *rgb) nogil except *:
     if rgb.b > 1.0:
         rgb.b = 1.0
 
-cpdef (double, double, double) yiq_to_rgb(double y, double i, double q):
-    cdef color_rgb rgb
-    cdef color_yiq yiq
-    yiq.y = y
-    yiq.i = i
-    yiq.q = q
+cpdef yiq_to_rgb(double y, double i, double q):
+    cdef color_rgb_t rgb
+    cdef color_yiq_t yiq
+    rgb.array = [0, 0, 0]
+    yiq.values.y = y
+    yiq.values.i = i
+    yiq.values.q = q
     _yiq_to_rgb(&yiq, &rgb)
-    return (rgb.r, rgb.g, rgb.b)
+    return rgb.array
 
 # HLS: Hue, Luminance, Saturation
 # H: position in the spectrum
 # L: color lightness
 # S: color saturation
 
-cdef void _rgb_to_hls(color_rgb *rgb, color_hls *hls) nogil except *:
+cdef void _rgb_to_hls(color_rgb_t *rgb_ptr, color_hls_t *hls_ptr) nogil except *:
+    cdef _color_rgb_st* rgb = &rgb_ptr.values
+    cdef _color_hls_st* hls = &hls_ptr.values
     cdef double maxc = max(rgb.r, rgb.g, rgb.b)
     cdef double minc = min(rgb.r, rgb.g, rgb.b)
     cdef double diffc = maxc - minc
@@ -121,16 +129,19 @@ cdef void _rgb_to_hls(color_rgb *rgb, color_hls *hls) nogil except *:
         hls.h = 4.0+gc-rc
     hls.h = (hls.h/6.0) % 1.0
 
-cpdef (double, double, double) rgb_to_hls(double r, double g, double b):
-    cdef color_hls hls
-    cdef color_rgb rgb
-    rgb.r = r
-    rgb.g = g
-    rgb.b = b
+cpdef rgb_to_hls(double r, double g, double b):
+    cdef color_hls_t hls
+    hls.array = [0, 0, 0]
+    cdef color_rgb_t rgb
+    rgb.values.r = r
+    rgb.values.g = g
+    rgb.values.b = b
     _rgb_to_hls(&rgb, &hls)
-    return (hls.h, hls.l, hls.s)
+    return hls.array
 
-cdef void _hls_to_rgb(color_hls *hls, color_rgb *rgb) nogil except *:
+cdef void _hls_to_rgb(color_hls_t *hls_ptr, color_rgb_t *rgb_ptr) nogil except *:
+    cdef _color_hls_st* hls = &hls_ptr.values
+    cdef _color_rgb_st* rgb = &rgb_ptr.values
     if hls.s == 0.0:
         rgb.r = hls.l
         rgb.g = hls.l
@@ -146,14 +157,15 @@ cdef void _hls_to_rgb(color_hls *hls, color_rgb *rgb) nogil except *:
     rgb.g = _v(m1, m2, hls.h)
     rgb.b = _v(m1, m2, hls.h-ONE_THIRD)
 
-cpdef (double, double, double) hls_to_rgb(double h, double l, double s):
-    cdef color_rgb rgb
-    cdef color_hls hls
-    hls.h = h
-    hls.l = l
-    hls.s = s
+cpdef hls_to_rgb(double h, double l, double s):
+    cdef color_rgb_t rgb
+    rgb.array = [0, 0, 0]
+    cdef color_hls_t hls
+    hls.values.h = h
+    hls.values.l = l
+    hls.values.s = s
     _hls_to_rgb(&hls, &rgb)
-    return (rgb.r, rgb.g, rgb.b)
+    return rgb.array
 
 cdef double _v(const double m1, const double m2, const double hue) nogil except *:
     cdef double hue2 = hue % 1.0
@@ -171,7 +183,9 @@ cdef double _v(const double m1, const double m2, const double hue) nogil except 
 # S: color saturation ("purity")
 # V: color brightness
 
-cdef void _rgb_to_hsv(color_rgb *rgb, color_hsv *hsv) nogil except *:
+cdef void _rgb_to_hsv(color_rgb_t *rgb_ptr, color_hsv_t *hsv_ptr) nogil except *:
+    cdef _color_rgb_st* rgb = &rgb_ptr.values
+    cdef _color_hsv_st* hsv = &hsv_ptr.values
     cdef double maxc = max(rgb.r, rgb.g, rgb.b)
     cdef double minc = min(rgb.r, rgb.g, rgb.b)
     cdef double diffc = maxc - minc
@@ -195,16 +209,19 @@ cdef void _rgb_to_hsv(color_rgb *rgb, color_hsv *hsv) nogil except *:
         hsv.h = 4.0+gc-rc
     hsv.h = (hsv.h/6.0) % 1.0
 
-cpdef (double, double, double) rgb_to_hsv(double r, double g, double b):
-    cdef color_hsv hsv
-    cdef color_rgb rgb
-    rgb.r = r
-    rgb.g = g
-    rgb.b = b
+cpdef rgb_to_hsv(double r, double g, double b):
+    cdef color_hsv_t hsv
+    hsv.array = [0, 0, 0]
+    cdef color_rgb_t rgb
+    rgb.values.r = r
+    rgb.values.g = g
+    rgb.values.b = b
     _rgb_to_hsv(&rgb, &hsv)
-    return (hsv.h, hsv.s, hsv.v)
+    return hsv.array
 
-cdef void _hsv_to_rgb(color_hsv *hsv, color_rgb *rgb) nogil except *:
+cdef void _hsv_to_rgb(color_hsv_t *hsv_ptr, color_rgb_t *rgb_ptr) nogil except *:
+    cdef _color_hsv_st* hsv = &hsv_ptr.values
+    cdef _color_rgb_st* rgb = &rgb_ptr.values
     if hsv.s == 0.0:
         rgb.r = hsv.v
         rgb.g = hsv.v
@@ -245,11 +262,12 @@ cdef void _hsv_to_rgb(color_hsv *hsv, color_rgb *rgb) nogil except *:
             raise ValueError()
     # Cannot get here
 
-cpdef (double, double, double) hsv_to_rgb(double h, double s, double v):
-    cdef color_rgb rgb
-    cdef color_hsv hsv
-    hsv.h = h
-    hsv.s = s
-    hsv.v = v
+cpdef hsv_to_rgb(double h, double s, double v):
+    cdef color_rgb_t rgb
+    rgb.array = [0, 0, 0]
+    cdef color_hsv_t hsv
+    hsv.values.h = h
+    hsv.values.s = s
+    hsv.values.v = v
     _hsv_to_rgb(&hsv, &rgb)
-    return (rgb.r, rgb.g, rgb.b)
+    return rgb.array

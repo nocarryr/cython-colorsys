@@ -5,51 +5,53 @@ from libc.math cimport round as roundc
 
 import numpy as np
 
-from cycolorsys cimport (
-    color_yiq, color_rgb, color_hls, color_hsv,
-    _rgb_to_yiq, _yiq_to_rgb, _rgb_to_hls, _hls_to_rgb,
-    _rgb_to_hsv, _hsv_to_rgb,
-)
+from cycolorsys cimport *
 
-cdef void assign_yiq(color_yiq* yiq, double[:] values) nogil except *:
-    yiq.y = values[0]
-    yiq.i = values[1]
-    yiq.q = values[2]
+cdef bint check_rgb_values(color_rgb_t *rgb) nogil except *:
+    if rgb.values.r != rgb.array[0]:
+        return False
+    if rgb.values.g != rgb.array[1]:
+        return False
+    if rgb.values.b != rgb.array[2]:
+        return False
+    return True
 
-cdef void assign_hls(color_hls* hls, double[:] values) nogil except *:
-    hls.h = values[0]
-    hls.l = values[1]
-    hls.s = values[2]
+cdef check_yiq_values(color_yiq_t *yiq):
+    if yiq.values.y != yiq.array[0]:
+        return False
+    if yiq.values.i != yiq.array[1]:
+        return False
+    if yiq.values.q != yiq.array[2]:
+        return False
+    return True
 
-cdef void assign_hsv(color_hsv* hsv, double[:] values) nogil except *:
-    hsv.h = values[0]
-    hsv.s = values[1]
-    hsv.v = values[2]
+cdef check_hls_values(color_hls_t *hls):
+    if hls.values.h != hls.array[0]:
+        return False
+    if hls.values.l != hls.array[1]:
+        return False
+    if hls.values.s != hls.array[2]:
+        return False
+    return True
 
-cdef void assign_rgb(color_rgb* rgb, double[:] values) nogil except *:
-    rgb.r = values[0]
-    rgb.g = values[1]
-    rgb.b = values[2]
+cdef check_hsv_values(color_hsv_t *hsv):
+    if hsv.values.h != hsv.array[0]:
+        return False
+    if hsv.values.s != hsv.array[1]:
+        return False
+    if hsv.values.v != hsv.array[2]:
+        return False
+    return True
 
-cdef void unpack_yiq(color_yiq* yiq, double[:] values) nogil except *:
-    values[0] = yiq.y
-    values[1] = yiq.i
-    values[2] = yiq.q
+cdef void assign_color_tuple(color_tuple_t color, double[:] values) nogil except *:
+    cdef Py_ssize_t i
+    for i in range(3):
+        color[i] = values[i]
 
-cdef void unpack_hls(color_hls* hls, double[:] values) nogil except *:
-    values[0] = hls.h
-    values[1] = hls.l
-    values[2] = hls.s
-
-cdef void unpack_hsv(color_hsv* hsv, double[:] values) nogil except *:
-    values[0] = hsv.h
-    values[1] = hsv.s
-    values[2] = hsv.v
-
-cdef void unpack_rgb(color_rgb* rgb, double[:] values) nogil except *:
-    values[0] = rgb.r
-    values[1] = rgb.g
-    values[2] = rgb.b
+cdef void unpack_color_tuple(color_tuple_t color, double[:] values) nogil except *:
+    cdef Py_ssize_t i
+    for i in range(3):
+        values[i] = color[i]
 
 @cython.cdivision(True)
 cdef void check_values(double[:] a, double[:] b) except *:
@@ -66,48 +68,56 @@ cdef void check_values(double[:] a, double[:] b) except *:
             raise Exception('{} != {}, diff={}'.format(a[i], b[i], abs(a[i])-abs(b[i])))
 
 def do_test(double[:,:] color_values):
-    cdef color_hls hls
-    cdef color_yiq yiq
-    cdef color_rgb rgb
-    cdef color_hsv hsv
+    cdef color_hls_t hls
+    cdef color_yiq_t yiq
+    cdef color_rgb_t rgb
+    cdef color_hsv_t hsv
     cdef Py_ssize_t nrows = color_values.shape[0]
     cdef double[:,:] result = np.empty((nrows,3), dtype=np.double)
     cdef double[:] value = np.empty(3, dtype=np.double)
     cdef Py_ssize_t i
 
     for i in range(nrows):
-        assign_rgb(&rgb, color_values[i])
+        assign_color_tuple(rgb.array, color_values[i])
         _rgb_to_hsv(&rgb, &hsv)
         _hsv_to_rgb(&hsv, &rgb)
-        unpack_rgb(&rgb, value)
+        unpack_color_tuple(rgb.array, value)
+        assert check_hsv_values(&hsv)
+        assert check_rgb_values(&rgb)
         check_values(value, color_values[i])
 
-        assign_yiq(&yiq, color_values[i])
+        assign_color_tuple(yiq.array, color_values[i])
         _yiq_to_rgb(&yiq, &rgb)
         _rgb_to_yiq(&rgb, &yiq)
-        unpack_yiq(&yiq, value)
+        unpack_color_tuple(yiq.array, value)
+        assert check_yiq_values(&yiq)
+        assert check_rgb_values(&rgb)
         check_values(value, color_values[i])
 
-        assign_hls(&hls, color_values[i])
+        assign_color_tuple(hls.array, color_values[i])
         _hls_to_rgb(&hls, &rgb)
         _rgb_to_hls(&rgb, &hls)
-        unpack_hls(&hls, value)
+        unpack_color_tuple(hls.array, value)
+        assert check_hls_values(&hls)
+        assert check_rgb_values(&rgb)
         check_values(value, color_values[i])
 
-        assign_hsv(&hsv, color_values[i])
+        assign_color_tuple(hsv.array, color_values[i])
         _hsv_to_rgb(&hsv, &rgb)
         _rgb_to_hsv(&rgb, &hsv)
-        unpack_hsv(&hsv, value)
+        unpack_color_tuple(hsv.array, value)
+        assert check_hsv_values(&hsv)
+        assert check_rgb_values(&rgb)
         check_values(value, color_values[i])
 
-        assign_rgb(&rgb, color_values[i])
+        assign_color_tuple(rgb.array, color_values[i])
         _rgb_to_hsv(&rgb, &hsv)
         _hsv_to_rgb(&hsv, &rgb)
         _rgb_to_hls(&rgb, &hls)
         _hls_to_rgb(&hls, &rgb)
         _rgb_to_yiq(&rgb, &yiq)
         _yiq_to_rgb(&yiq, &rgb)
-        unpack_rgb(&rgb, value)
+        unpack_color_tuple(rgb.array, value)
         check_values(value, color_values[i])
 
         result[i,:] = value
