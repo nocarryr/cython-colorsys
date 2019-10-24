@@ -15,6 +15,7 @@ def do_stuff(m, values, results):
         rgb = m.yiq_to_rgb(*m.rgb_to_yiq(*m.hls_to_rgb(*m.rgb_to_hls(*m.hsv_to_rgb(*m.rgb_to_hsv(*value))))))
         results[i,:] = rgb
 
+@pytest.mark.benchmark(group='stdlib-vs-cython')
 @pytest.mark.parametrize('colorsys_module', ['cython', 'stdlib'])
 def test_bench_colorsys(benchmark, colorsys_module, color_values):
     if colorsys_module == 'stdlib':
