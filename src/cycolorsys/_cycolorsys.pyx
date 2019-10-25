@@ -57,9 +57,7 @@ cpdef rgb_to_yiq(double r, double g, double b):
     cdef color_yiq_t yiq
     yiq.array = [0, 0, 0]
     cdef color_rgb_t rgb
-    rgb.values.r = r
-    rgb.values.g = g
-    rgb.values.b = b
+    rgb.array = [r, g, b]
     _rgb_to_yiq(&rgb, &yiq)
     return yiq.array
 
@@ -89,11 +87,9 @@ cdef void _yiq_to_rgb(color_yiq_t *yiq_ptr, color_rgb_t *rgb_ptr) nogil except *
 
 cpdef yiq_to_rgb(double y, double i, double q):
     cdef color_rgb_t rgb
-    cdef color_yiq_t yiq
     rgb.array = [0, 0, 0]
-    yiq.values.y = y
-    yiq.values.i = i
-    yiq.values.q = q
+    cdef color_yiq_t yiq
+    yiq.array = [y, i, q]
     _yiq_to_rgb(&yiq, &rgb)
     return rgb.array
 
@@ -133,9 +129,7 @@ cpdef rgb_to_hls(double r, double g, double b):
     cdef color_hls_t hls
     hls.array = [0, 0, 0]
     cdef color_rgb_t rgb
-    rgb.values.r = r
-    rgb.values.g = g
-    rgb.values.b = b
+    rgb.array = [r, g, b]
     _rgb_to_hls(&rgb, &hls)
     return hls.array
 
@@ -161,9 +155,7 @@ cpdef hls_to_rgb(double h, double l, double s):
     cdef color_rgb_t rgb
     rgb.array = [0, 0, 0]
     cdef color_hls_t hls
-    hls.values.h = h
-    hls.values.l = l
-    hls.values.s = s
+    hls.array = [h, l, s]
     _hls_to_rgb(&hls, &rgb)
     return rgb.array
 
@@ -213,9 +205,7 @@ cpdef rgb_to_hsv(double r, double g, double b):
     cdef color_hsv_t hsv
     hsv.array = [0, 0, 0]
     cdef color_rgb_t rgb
-    rgb.values.r = r
-    rgb.values.g = g
-    rgb.values.b = b
+    rgb.array = [r, g, b]
     _rgb_to_hsv(&rgb, &hsv)
     return hsv.array
 
@@ -266,8 +256,6 @@ cpdef hsv_to_rgb(double h, double s, double v):
     cdef color_rgb_t rgb
     rgb.array = [0, 0, 0]
     cdef color_hsv_t hsv
-    hsv.values.h = h
-    hsv.values.s = s
-    hsv.values.v = v
+    hsv.array = [h, s, v]
     _hsv_to_rgb(&hsv, &rgb)
     return rgb.array
