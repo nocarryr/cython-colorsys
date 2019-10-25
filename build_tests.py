@@ -8,7 +8,7 @@ TEST_DIR = Path(__file__).resolve().parent / 'tests'
 
 def run():
     pyx_pattern = str(TEST_DIR / '*.pyx')
-    cmd_str = 'cythonize -b -i {}'.format(pyx_pattern)
+    cmd_str = 'cythonize -b -a -i {}'.format(pyx_pattern)
     print(cmd_str)
     subprocess.call(shlex.split(cmd_str))
 
