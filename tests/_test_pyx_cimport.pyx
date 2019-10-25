@@ -43,11 +43,6 @@ cdef check_hsv_values(color_hsv_t *hsv):
         return False
     return True
 
-cdef void assign_color_tuple(color_tuple_t color, double[:] values) nogil except *:
-    cdef Py_ssize_t i
-    for i in range(3):
-        color[i] = values[i]
-
 cdef void unpack_color_tuple(color_tuple_t color, double[:] values) nogil except *:
     cdef Py_ssize_t i
     for i in range(3):
@@ -82,7 +77,7 @@ def do_test_cdef(double[:,:] color_values, double[:,:] result):
     for i in range(nrows):
         color_value = color_values[i]
 
-        assign_color_tuple(rgb.array, color_value)
+        rgb.array = <double *>&color_value[0]
         _rgb_to_hsv(&rgb, &hsv)
         _hsv_to_rgb(&hsv, &rgb)
         unpack_color_tuple(rgb.array, value)
@@ -90,7 +85,7 @@ def do_test_cdef(double[:,:] color_values, double[:,:] result):
         assert check_rgb_values(&rgb)
         check_values(value, color_value)
 
-        assign_color_tuple(yiq.array, color_value)
+        yiq.array = <double *>&color_value[0]
         _yiq_to_rgb(&yiq, &rgb)
         _rgb_to_yiq(&rgb, &yiq)
         unpack_color_tuple(yiq.array, value)
@@ -98,7 +93,7 @@ def do_test_cdef(double[:,:] color_values, double[:,:] result):
         assert check_rgb_values(&rgb)
         check_values(value, color_value)
 
-        assign_color_tuple(hls.array, color_value)
+        hls.array = <double *>&color_value[0]
         _hls_to_rgb(&hls, &rgb)
         _rgb_to_hls(&rgb, &hls)
         unpack_color_tuple(hls.array, value)
@@ -106,7 +101,7 @@ def do_test_cdef(double[:,:] color_values, double[:,:] result):
         assert check_rgb_values(&rgb)
         check_values(value, color_value)
 
-        assign_color_tuple(hsv.array, color_value)
+        hsv.array = <double *>&color_value[0]
         _hsv_to_rgb(&hsv, &rgb)
         _rgb_to_hsv(&rgb, &hsv)
         unpack_color_tuple(hsv.array, value)
@@ -114,7 +109,7 @@ def do_test_cdef(double[:,:] color_values, double[:,:] result):
         assert check_rgb_values(&rgb)
         check_values(value, color_value)
 
-        assign_color_tuple(rgb.array, color_value)
+        rgb.array = <double *>&color_value[0]
         _rgb_to_hsv(&rgb, &hsv)
         _hsv_to_rgb(&hsv, &rgb)
         _rgb_to_hls(&rgb, &hls)
