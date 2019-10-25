@@ -4,3 +4,4 @@ from cycolorsys._cycolorsys cimport (
     _rgb_to_yiq, _yiq_to_rgb, _rgb_to_hls, _hls_to_rgb,
     _rgb_to_hsv, _hsv_to_rgb,
 )
+from cycolorsys.colorobj cimport Color, ColorYIQ, ColorHLS, ColorHSV
