@@ -1,4 +1,5 @@
 import pytest
+from pytest import approx
 import numpy as np
 
 from cycolorsys import *
@@ -32,6 +33,30 @@ def test_colorobj(color_values):
     #     color_yiq = ColorYIQ(*color_hls.get_yiq())
     #
     #     check_values(value, color_rgb, color_hsv, color_hls, color_yiq)
+
+def test_descriptors(color_values):
+    N = color_values.shape[0] // 4
+
+    color_rgb = Color()
+    color_hsv = ColorHSV()
+    color_hls = ColorHLS()
+
+    for value in color_values[:N,:]:
+        color_rgb.set_rgb(*value)
+        hsv = color_rgb.get_hsv()
+        hls = color_rgb.get_hls()
+
+        color_hsv.hue, color_hsv.saturation, color_hsv.value = hsv
+        assert (color_hsv.hue, color_hsv.saturation, color_hsv.value) == tuple(hsv) == tuple(color_hsv.get_hsv())
+
+        color_hls.hue, color_hls.lightness, color_hls.saturation = hls
+
+        assert (color_hls.hue, color_hls.lightness, color_hls.saturation) == tuple(hls) == tuple(color_hls.get_hls())
+
+        assert color_rgb.red == approx(color_hsv.red) == approx(color_hls.red) == value[0]
+        assert color_rgb.green == approx(color_hsv.green) == approx(color_hls.green) == value[1]
+        assert color_rgb.blue == approx(color_hsv.blue) == approx(color_hls.blue) == value[2]
+
 
 
 def test_addition():

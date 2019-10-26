@@ -51,6 +51,30 @@ cdef class Color:
     def __init__(self, double r=0, double g=0, double b=0):
         self.rgb.array = [r, g, b]
 
+    @property
+    def red(self):
+        return self.rgb.values.r
+    @red.setter
+    def red(self, double value):
+        self.rgb.values.r = value
+        self._set_rgb(&self.rgb)
+
+    @property
+    def green(self):
+        return self.rgb.values.g
+    @green.setter
+    def green(self, double value):
+        self.rgb.values.g = value
+        self._set_rgb(&self.rgb)
+
+    @property
+    def blue(self):
+        return self.rgb.values.b
+    @blue.setter
+    def blue(self, double value):
+        self.rgb.values.b = value
+        self._set_rgb(&self.rgb)
+
     cpdef set_yiq(self, double y, double i, double q):
         cdef color_yiq_t yiq
         yiq.array = [y, i, q]
@@ -219,6 +243,30 @@ cdef class ColorHLS(Color):
         self.hls.array = [h, l, s]
         _hls_to_rgb(&self.hls, &self.rgb)
 
+    @property
+    def hue(self):
+        return self.hls.values.h
+    @hue.setter
+    def hue(self, double value):
+        self.hls.values.h = value
+        self._set_hls(&self.hls)
+
+    @property
+    def lightness(self):
+        return self.hls.values.l
+    @lightness.setter
+    def lightness(self, double value):
+        self.hls.values.l = value
+        self._set_hls(&self.hls)
+
+    @property
+    def saturation(self):
+        return self.hls.values.s
+    @saturation.setter
+    def saturation(self, double value):
+        self.hls.values.s = value
+        self._set_hls(&self.hls)
+
     cpdef get_hls(self):
         return self.hls.array
 
@@ -244,6 +292,30 @@ cdef class ColorHSV(Color):
     def __init__(self, double h=0, double s=0, double v=0):
         self.hsv.array = [h, s, v]
         _hsv_to_rgb(&self.hsv, &self.rgb)
+
+    @property
+    def hue(self):
+        return self.hsv.values.h
+    @hue.setter
+    def hue(self, double value):
+        self.hsv.values.h = value
+        self._set_hsv(&self.hsv)
+
+    @property
+    def saturation(self):
+        return self.hsv.values.s
+    @saturation.setter
+    def saturation(self, double value):
+        self.hsv.values.s = value
+        self._set_hsv(&self.hsv)
+
+    @property
+    def value(self):
+        return self.hsv.values.v
+    @value.setter
+    def value(self, double value):
+        self.hsv.values.v = value
+        self._set_hsv(&self.hsv)
 
     cpdef get_hsv(self):
         return self.hsv.array
